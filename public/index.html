@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agente OC</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7f5; --panel: #fff; --ink: #1d2320; --muted: #66706b; --line: #dfe3e0;
+    --brand: #1f6b45; --brand-ink: #fff; --tool: #eef3f0; --warn: #fff4d6; --warn-line: #e3b63c;
+    --ok: #1f7a4a; --err: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #121614; --panel: #1a201d; --ink: #e6ebe8; --muted: #9aa49f; --line: #2c3430;
+      --brand: #3fa36f; --tool: #1f2824; --warn: #3a3218; --warn-line: #c99a28; --ok: #5fc48c; --err: #ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 2; }
+  header h1 { font-size: 16px; margin: 0; }
+  header .status { font-size: 12px; color: var(--muted); margin-left: auto; }
+  main { max-width: 920px; margin: 0 auto; padding: 16px 16px 160px; }
+  .msg { margin: 12px 0; }
+  .user { text-align: right; }
+  .user .bubble { display: inline-block; background: var(--brand); color: var(--brand-ink); padding: 8px 12px; border-radius: 14px 14px 2px 14px; max-width: 80%; text-align: left; white-space: pre-wrap; }
+  .assistant .bubble { background: var(--panel); border: 1px solid var(--line); padding: 10px 14px; border-radius: 2px 14px 14px 14px; overflow-x: auto; }
+  .assistant .bubble table { border-collapse: collapse; font-size: 13px; margin: 6px 0; }
+  .assistant .bubble th, .assistant .bubble td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; }
+  .assistant .bubble p { margin: 6px 0; }
+  details.tool { background: var(--tool); border: 1px solid var(--line); border-radius: 8px; margin: 6px 0; font-size: 13px; }
+  details.tool summary { cursor: pointer; padding: 6px 10px; display: flex; gap: 8px; align-items: center; list-style: none; }
+  details.tool summary::-webkit-details-marker { display: none; }
+  .tag { font-family: ui-monospace, monospace; font-weight: 600; }
+  .badge { font-size: 11px; padding: 1px 6px; border-radius: 99px; border: 1px solid currentColor; }
+  .badge.ok { color: var(--ok); } .badge.err { color: var(--err); }
+  pre { margin: 0; padding: 8px 10px; overflow-x: auto; font-size: 12px; border-top: 1px solid var(--line); max-height: 320px; }
+  .confirm { background: var(--warn); border: 2px solid var(--warn-line); border-radius: 10px; padding: 12px 14px; margin: 10px 0; }
+  .confirm h3 { margin: 0 0 6px; font-size: 15px; }
+  .confirm .kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; font-size: 13px; margin: 8px 0; }
+  .confirm .kv b { font-weight: 600; }
+  .confirm ul { margin: 4px 0 8px 18px; padding: 0; font-size: 13px; }
+  .confirm textarea { width: 100%; min-height: 54px; margin: 6px 0; font: inherit; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+  .confirm .actions { display: flex; gap: 8px; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 7px 14px; cursor: pointer; }
+  button.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+  button.danger { color: var(--err); border-color: var(--err); }
+  button:disabled { opacity: .5; cursor: default; }
+  footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); border-top: 1px solid var(--line); padding: 10px 16px; }
+  footer .inner { max-width: 920px; margin: 0 auto; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .chips button { font-size: 12px; padding: 4px 10px; border-radius: 99px; }
+  form { display: flex; gap: 8px; }
+  form textarea { flex: 1; resize: none; min-height: 42px; max-height: 140px; font: inherit; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+  .typing { color: var(--muted); font-size: 13px; font-style: italic; }
+  .meta { color: var(--muted); font-size: 11px; margin-top: 2px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Agente de Órdenes de Compra</h1>
+  <span class="status" id="status">…</span>
+  <button id="reset" title="Nueva conversación">Nueva sesión</button>
+</header>
+<main id="log"></main>
+<footer><div class="inner">
+  <div class="chips" id="chips"></div>
+  <form id="form">
+    <textarea id="input" placeholder="Ej.: procesa la solicitud sol-001" rows="1"></textarea>
+    <button class="primary" id="send">Enviar</button>
+  </form>
+</div></footer>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const log = $("#log");
+let sessionId = (() => { try { return localStorage.getItem("oc-session") || nuevaSesion(); } catch { return nuevaSesion(); } })();
+let busy = false, tokens = { in: 0, out: 0 };
+
+function nuevaSesion() {
+  const id = "s-" + Math.random().toString(36).slice(2, 12);
+  try { localStorage.setItem("oc-session", id); } catch {}
+  return id;
+}
+
+const md = (t) => (window.marked && window.DOMPurify) ? DOMPurify.sanitize(marked.parse(t)) : escapeHtml(t).replace(/\n/g, "<br>");
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+const fmt = (n) => typeof n === "number" ? "$" + n.toLocaleString("es-CO") : n ?? "—";
+
+function add(html, cls = "assistant") {
+  const d = document.createElement("div"); d.className = "msg " + cls; d.innerHTML = html; log.appendChild(d);
+  d.scrollIntoView({ block: "end", behavior: "smooth" }); return d;
+}
+
+const pendingCalls = new Map();
+function render(ev) {
+  if (ev.type === "text") add(`<div class="bubble">${md(ev.text)}</div>`);
+  else if (ev.type === "tool_call") {
+    const el = add(`<details class="tool"><summary><span>🔧</span><span class="tag">${escapeHtml(ev.name)}</span><span class="meta">${escapeHtml(JSON.stringify(ev.input))}</span><span class="badge">ejecutando…</span></summary></details>`);
+    pendingCalls.set(ev.id, el.querySelector("details"));
+  } else if (ev.type === "tool_result") {
+    let det = pendingCalls.get(ev.id);
+    if (!det) det = add(`<details class="tool"><summary><span>🔧</span><span class="tag">${escapeHtml(ev.name)}</span><span class="badge"></span></summary></details>`).querySelector("details");
+    const b = det.querySelector(".badge"); b.textContent = ev.isError ? "error" : "ok"; b.className = "badge " + (ev.isError ? "err" : "ok");
+    det.insertAdjacentHTML("beforeend", `<pre>${escapeHtml(JSON.stringify(ev.output, null, 2))}</pre>`);
+  } else if (ev.type === "confirmation") renderConfirm(ev);
+  else if (ev.type === "usage") { tokens.in += ev.input_tokens; tokens.out += ev.output_tokens; status(); }
+}
+
+function renderConfirm(ev) {
+  const p = ev.preview || {}, pl = p.payload || {};
+  const motivos = (p.motivos || []).map((m) => `<li>${escapeHtml(m)}</li>`).join("");
+  const el = add(`<div class="confirm">
+    <h3>⚠️ Confirmación requerida: ${escapeHtml(ev.name)}</h3>
+    <div>Solicitud <b>${escapeHtml(ev.input.solicitudId)}</b> · decisión de controles: <b>${escapeHtml(p.decision ?? "?")}</b>${p.retroactiva ? " · <b>RETROACTIVA</b>" : ""}</div>
+    <div class="kv">
+      <b>Proveedor</b><span>${escapeHtml(pl.proveedor?.razonSocial ?? "—")} (${escapeHtml(pl.proveedor?.nit ?? "")})</span>
+      <b>Centro</b><span>${escapeHtml(pl.centroCosto ?? "—")} ${escapeHtml(pl.subarea ?? "")}</span>
+      <b>IVA / Pago</b><span>${escapeHtml(pl.indicadorIva ?? "—")} / ${escapeHtml(pl.condicionPago ?? "—")}</span>
+      <b>Subtotal</b><span>${fmt(pl.subtotal)}</span><b>IVA</b><span>${fmt(pl.iva)}</span><b>Total</b><span><b>${fmt(pl.total)}</b></span>
+      ${ev.input.justificacion ? `<b>Justificación</b><span>${escapeHtml(ev.input.justificacion)}</span>` : ""}
+    </div>
+    ${motivos ? `<div>Alertas / motivos:</div><ul>${motivos}</ul>` : ""}
+    <textarea placeholder="Comentario (opcional; se envía al agente si rechazas)"></textarea>
+    <div class="actions"><button class="primary" data-ok="1">Aprobar y crear OC</button><button class="danger" data-ok="0">Rechazar</button></div>
+  </div>`);
+  el.querySelectorAll("button").forEach((btn) => btn.onclick = async () => {
+    el.querySelectorAll("button").forEach((b) => b.disabled = true);
+    const comment = el.querySelector("textarea").value || undefined;
+    btn.textContent = btn.dataset.ok === "1" ? "Aprobado ✓" : "Rechazado ✗";
+    await call("/api/confirm", { sessionId, toolUseId: ev.id, approved: btn.dataset.ok === "1", comment });
+  });
+}
+
+async function call(url, body) {
+  busy = true; $("#send").disabled = true;
+  const t = add(`<div class="typing">El agente está trabajando…</div>`);
+  try {
+    const r = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const data = await r.json();
+    t.remove();
+    if (data.error) add(`<div class="bubble" style="border-color:var(--err)">Error: ${escapeHtml(data.error)}</div>`);
+    (data.events || []).forEach(render);
+  } catch (e) { t.remove(); add(`<div class="bubble">Error de red: ${escapeHtml(e.message)}</div>`); }
+  busy = false; $("#send").disabled = false; $("#input").focus();
+}
+
+$("#form").onsubmit = (e) => {
+  e.preventDefault();
+  const msg = $("#input").value.trim(); if (!msg || busy) return;
+  add(`<div class="bubble">${escapeHtml(msg)}</div>`, "user");
+  $("#input").value = "";
+  call("/api/chat", { sessionId, message: msg });
+};
+$("#input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#form").requestSubmit(); } });
+$("#reset").onclick = async () => { await fetch("/api/reset", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId }) }); sessionId = nuevaSesion(); log.innerHTML = ""; tokens = { in: 0, out: 0 }; status(); saludo(); };
+
+["Lista las solicitudes pendientes", "Procesa la solicitud sol-001", "Procesa todas las solicitudes", "Muestra la bitácora de auditoría"]
+  .forEach((t) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t; b.onclick = () => { $("#input").value = t; $("#form").requestSubmit(); }; $("#chips").appendChild(b); });
+
+let health = {};
+function status() { $("#status").textContent = `${health.model ?? ""} ${health.llmConfigurado === false ? "· ⚠️ sin API key" : ""} · tokens ${tokens.in}/${tokens.out}`; }
+function saludo() { add(`<div class="bubble">Hola. Soy el agente de órdenes de compra: leo la solicitud, verifico los controles y creo la OC en SAP con tu confirmación. ¿Qué solicitud reviso?</div>`); }
+fetch("/api/health").then((r) => r.json()).then((h) => { health = h; status(); }).catch(() => {});
+saludo();
+</script>
+</body>
+</html>

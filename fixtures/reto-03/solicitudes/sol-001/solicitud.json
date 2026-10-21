@@ -1,0 +1,4 @@
+{ "fecha": "2026-05-10", "solicitante": "ana.perez@empresa.com", "nitProveedor": "900123456-7",
+  "centroCosto": "CC-100", "subarea": "Desarrollo", "descripcion": "Licencias IDE",
+  "items": [ { "descripcion": "Licencia anual IDE", "cantidad": 5, "valorUnitario": 1200000 } ],
+  "indicadorIva": "I1", "moneda": "COP" }

@@ -1,0 +1,2 @@
+{ "fecha": "2026-05-14", "nitProveedor": "800987654-1", "centroCosto": "CC-100", "subarea": "Infraestructura",
+  "items": [ { "descripcion": "Servidor rack", "cantidad": 2, "valorUnitario": 4000000 } ], "indicadorIva": "I1", "condicionPago": "N60" }

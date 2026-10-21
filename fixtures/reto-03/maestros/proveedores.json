@@ -1,0 +1,5 @@
+[
+  { "id": "PRV-001", "nit": "900123456-7", "razonSocial": "Soluciones Andinas SAS", "estado": "ACTIVO", "defaults": { "indicadorIva": "I1", "condicionPago": "N30" } },
+  { "id": "PRV-002", "nit": "800987654-1", "razonSocial": "Suministros del Valle Ltda", "estado": "BLOQUEADO", "defaults": { "indicadorIva": "I1", "condicionPago": "N60" } },
+  { "id": "PRV-003", "nit": "901555222-3", "razonSocial": "Consultoría Norte SAS", "estado": "ACTIVO", "defaults": { "indicadorIva": "I1", "condicionPago": "N30" } }
+]

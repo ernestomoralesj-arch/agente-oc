@@ -1,0 +1,6 @@
+[
+  { "codigo": "CC-100", "nombre": "Tecnología", "subareas": ["Infraestructura", "Desarrollo"],
+    "lideres": [ { "correo": "lider.ti@empresa.com", "nombre": "Laura Gómez", "tope": 20000000 } ] },
+  { "codigo": "CC-200", "nombre": "Mercadeo", "subareas": ["Digital", "Eventos"],
+    "lideres": [ { "correo": "lider.mkt@empresa.com", "nombre": "Andrés Ruiz", "tope": 10000000 } ] }
+]

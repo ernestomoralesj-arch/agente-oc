@@ -1,0 +1,2 @@
+{ "fecha": "2026-05-20", "nitProveedor": "900123456-7", "centroCosto": "CC-100", "subarea": "Infraestructura",
+  "items": [ { "descripcion": "Soporte de emergencia", "cantidad": 1, "valorUnitario": 3000000 } ] }

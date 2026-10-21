@@ -1,0 +1,5 @@
+Suministros del Valle Ltda  NIT: 800.987.654-1
+Fecha: 12 de mayo de 2026
+Subtotal: $8.000.000
+IVA 19%: $1.520.000
+Total: $9.520.000

@@ -1,0 +1,3 @@
+[ { "codigo": "I0", "descripcion": "Exento", "tasa": 0 },
+  { "codigo": "I5", "descripcion": "IVA 5%", "tasa": 5 },
+  { "codigo": "I1", "descripcion": "IVA 19%", "tasa": 19 } ]
